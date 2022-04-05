@@ -9,7 +9,9 @@ const date = require(__dirname + "/date.js");
 const _ = require('lodash');
 
 //console.log(date()); //you need to put parentheses after date to run the function
-mongoose.connect('mongodb://127.0.0.1:27017/todolistDB', {useNewUrlParser: true} );
+// mongoose.connect('mongodb://127.0.0.1:27017/todolistDB', {useNewUrlParser: true} );
+
+mongoose.connect('mongodb+srv://admin-saarim:mongoatlaspswd@cluster-mw.t40m9.mongodb.net/todolistDB', {useNewUrlParser: true} );
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
@@ -76,8 +78,7 @@ app.get("/", (req, res)=>{
             console.log("Successfully found items");
             res.render("list", {listTitle: day, newListItems: foundItems}); //giving value of listTitile as day 
         }
-    })
-    
+    })   
 });
  
 const listSchema = {
@@ -105,23 +106,26 @@ app.post("/", (req, res)=>{
 });  
 
 app.post("/delete", (req, res)=>{
+    
     const checkedItemID = req.body.checkbox;
-    const listName = req.body.listName;
-    if(listName === date.getDay()){
+    const thisListName = req.body.listName;
+    if(thisListName === date.getDay()){
         Item.findByIdAndRemove(checkedItemID, (err)=>{  //if you don't provide the callback then it won't execute the delete part
             if(!err) {console.log("Successfully deleted item")};
         });
         res.redirect("/");
     } else {
-        List.findOneAndUpdate({name: listName}, {$pull: {_id: checkedItemID}}, (err, foundItems)=>{
+        List.findOneAndUpdate({name: thisListName}, {$pull: {listItems: {_id: checkedItemID}}}, (err)=>{ //don't forget to put "listItems" here
             if(!err){
-                res.redirect("/" + listName)
+                res.redirect("/" + thisListName)
             }
         });
     }
 });
-
-app.get("/:name", (req, res)=>{
+app.get('/favicon.ico', (req,res)=>{
+    return 'your favicon'
+   })  //you should give a separate route for favicon to be handled as a parameter
+app.get('/:name', (req, res)=>{
     const listName = _.capitalize(req.params.name);
     List.findOne({name: listName}, (err, foundList)=>{
         if(!err){
@@ -131,7 +135,7 @@ app.get("/:name", (req, res)=>{
                     listItems: defaultItems
                 });
                 list.save();
-                res.redirect("/:name");
+                res.redirect('/' + listName);
             } else{
                 res.render("list", {listTitle: foundList.name, newListItems: foundList.listItems});
             }
