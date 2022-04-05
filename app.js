@@ -123,7 +123,7 @@ app.post("/delete", (req, res)=>{
     }
 });
 app.get('/favicon.ico', (req,res)=>{
-    return 'your favicon'
+    console.log('your favicon');
    })  //you should give a separate route for favicon to be handled as a parameter
 app.get('/:name', (req, res)=>{
     const listName = _.capitalize(req.params.name);
